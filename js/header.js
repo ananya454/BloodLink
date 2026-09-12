@@ -1,0 +1,56 @@
+document.write('<div class="topbar">');
+	document.write('<div class="container">');
+		document.write('<div class="row align-items-center">');
+			document.write('<div class="col-lg-9 col-md-8 col-8">');
+				document.write('<div class="topbar-contact-info">');
+					document.write('<ul>');
+						document.write('<li><a href="callto: +91 9819004741"><i class="fa-solid fa-phone"></i> +91 9819004741</a></li>');
+						document.write('<li><a href="mailto:bansalseparators@gmail.com"><i class="fa-solid fa-envelope"></i> bansalseparators@gmail.com</a></li>');
+					document.write('</ul>');
+				document.write('</div>');
+			document.write('</div>');
+			document.write('<div class="col-lg-3 col-md-4 col-4">');
+				document.write('<div class="topbar-social-links">');
+					document.write('<span>Follow Us</span>');
+					document.write('<ul>');
+						document.write('<li><a href="https://in.linkedin.com/company/bansalmarine" target="_blank"><i class="fa-brands fa-linkedin"></i></a></li>');
+						document.write('<li><a href="https://wa.me/919819004741" target="_blank"><i class="fab fa-whatsapp"></i></a></li>');
+					document.write('</ul>');
+				document.write('</div>');
+			document.write('</div>');
+		document.write('</div>');
+	document.write('</div>');
+document.write('</div>');
+
+
+document.write('<header class="main-header">');
+	document.write('<div class="header-sticky">');
+	document.write('<nav class="navbar navbar-expand-lg">');
+			document.write('<div class="container">');
+				document.write('<a class="navbar-brand" href="index.html"><img src="images/logo.png" alt=""></a>');
+					
+				document.write('<div class="collapse navbar-collapse main-menu">');
+					document.write('<ul class="navbar-nav mr-auto" id="menu">');
+						document.write('<li class="nav-item menu1"><a class="nav-link" href="index.html">Home</a></li>');
+						document.write('<li class="nav-item menu2"><a class="nav-link" href="about-us.html">About Us</a></li>');
+						document.write('<li class="nav-item has-submenu menu3"><a class="nav-link" href="javascript:;">Products</a>');
+							document.write('<ul class="sub-menu">');
+								document.write('<li class="nav-item"><a class="nav-link" href="separators.html">Separators</a></li>');
+								document.write('<li class="nav-item"><a class="nav-link" href="skid-and-modules-parts.html">Skid & Modules Parts</a></li>');
+								document.write('<li class="nav-item"><a class="nav-link" href="spare-parts-and-accessories.html">Spare Parts & Accessories</a></li>');
+								document.write('<li class="nav-item"><a class="nav-link" href="heat-exchangers-and-parts.html">Heat Exchangers & Parts</a></li>');
+								document.write('<li class="nav-item"><a class="nav-link" href="moatti-parts.html">Moatti Parts</a></li>');
+								document.write('<li class="nav-item"><a class="nav-link" href="fresh-water-generators-and-parts.html">Fresh Water Generators & Parts</a></li>');
+								document.write('<li class="nav-item"><a class="nav-link" href="pumps-and-parts.html">Pump & Parts</a></li>');
+							document.write('</ul>');
+						document.write('</li>');
+						document.write('<li class="nav-item menu4"><a class="nav-link" href="contact-us.html">Contact Us</a></li>');
+					document.write('</ul>');
+				document.write('</div>');
+				document.write('<div class="navbar-toggle"></div>');                        
+			document.write('</div>');
+		document.write('</nav>');
+
+		document.write('<div class="responsive-menu"></div>');
+	document.write('</div>');
+document.write('</header>');
