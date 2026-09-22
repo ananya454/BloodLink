@@ -43,45 +43,96 @@
 	
 	<section class="find-blood-section">
 		<div class="container">
+			<div class="row">
+				<div class="col-lg-12 mb-3">
+					<div class="back_btn">
+						<a href="/"><i class="fa fa-arrow-left"></i> Back to Home</a>
+					</div>
+				</div>
+			</div>
 			<div class="row justify-content-center">
 				<div class="col-lg-8">
 					<div class="request_blood_block">
+						{% if success %}
+						<!-- Confirmation Card for Submitted Request -->
+						<div class="text-center mb-4">
+							<div style="display: inline-flex; align-items: center; justify-content: center; width: 70px; height: 70px; border-radius: 50%; background: #dcfce7; color: #15803d; font-size: 32px; margin-bottom: 15px;">
+								<i class="fa fa-check"></i>
+							</div>
+							<h2 style="color: #15803d; font-weight: 700; font-size: 28px;">Request Submitted Successfully!</h2>
+							<p style="font-size: 16px; color: #4b5563;">Your blood availability request has been routed to the hospital.</p>
+						</div>
+
+						<div class="message_block mb-4" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px;">
+							<h5 class="fw-bold mb-3" style="color: #64050d; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">Request Summary</h5>
+							<div class="row g-2" style="font-size: 15px;">
+								<div class="col-sm-6"><strong>Patient Name:</strong> {{ patient_name }}</div>
+								<div class="col-sm-6"><strong>Contact Number:</strong> {{ contact_number }}</div>
+								{% if email %}
+								<div class="col-sm-6"><strong>Email ID:</strong> {{ email }}</div>
+								{% endif %}
+								<div class="col-sm-6"><strong>Blood Group:</strong> <span class="badge bg-danger">{{ blood_group }}</span></div>
+								<div class="col-sm-6"><strong>Units Requested:</strong> {{ units }} Unit(s)</div>
+								<div class="col-sm-6"><strong>Urgency:</strong> {{ urgency }}</div>
+								<div class="col-12 mt-2 pt-2 border-top">
+									<strong>Hospital:</strong> {{ hospital_name }}
+									{% if distance %} <span class="badge bg-primary ms-2"><i class="fa fa-location-arrow me-1"></i> {{ distance }}</span>{% endif %}<br>
+									{% if hospital_address %}<span class="text-muted"><i class="fa fa-map-marker-alt text-danger me-1"></i> {{ hospital_address }}</span><br>{% endif %}
+									{% if hospital_phone %}<span class="text-muted"><i class="fa fa-phone-alt text-primary me-1"></i> {{ hospital_phone }}</span>{% endif %}
+								</div>
+							</div>
+						</div>
+
+						<div class="p-3 mb-4 text-center" style="background: #fef2f2; border-radius: 8px; border: 1px solid #fecaca; color: #991b1b; font-size: 14px;">
+							<i class="fa fa-info-circle me-1"></i> The hospital blood bank coordinators have received this request and will contact <strong>{{ patient_name }}</strong> at <strong>{{ contact_number }}</strong> shortly.
+						</div>
+
+						<div class="d-flex justify-content-center gap-3">
+							<a href="/" class="btn submit_blood">Back to Home</a>
+							<a href="/availability" class="btn" style="background: #1e293b; color: #fff; padding: 12px 20px;">Check Another Group</a>
+						</div>
+
+						{% else %}
+						<!-- Default Thankyou Message -->
 						<div class="message_block">
 							<p>Thanks for submitting your request.</p>
 							<p><b>Please Note:</b> The requested blood type is currently available in our blood bank. Someone from our team will get in touch with you shortly.</p>
 							<p>For further communication, please share the following details:</p>
 						</div>
-						<div class="row mt-4">
-							<div class="col-md-6 mb-3">
-								<label class="form-label">
-									Name
-									<span class="text-danger">*</span>
-								</label>
-								<div class="input-group">
-									<input type="text" class="form-control" placeholder="Enter Name">
+						<form action="/login" method="POST">
+							<div class="row mt-4">
+								<div class="col-md-6 mb-3">
+									<label class="form-label">
+										Name
+										<span class="text-danger">*</span>
+									</label>
+									<div class="input-group">
+										<input type="text" name="name" class="form-control" placeholder="Enter Name" required>
+									</div>
+								</div>
+								<div class="col-md-6 mb-3">
+									<label class="form-label">
+										Contact Number
+										<span class="text-danger">*</span>
+									</label>
+									<div class="input-group">
+										<input type="tel" name="phone" class="form-control" placeholder="Enter Contact Number" required>
+									</div>
+								</div>
+								<div class="col-md-6 mb-3">
+									<label class="form-label">
+										Email ID
+									</label>
+									<div class="input-group">
+										<input type="email" name="email" class="form-control" placeholder="Enter Email ID">
+									</div>
+								</div>
+								<div class="col-md-12 text-center mt-3">
+									<button type="submit" class="btn submit_blood">Submit</button>
 								</div>
 							</div>
-							<div class="col-md-6 mb-3">
-								<label class="form-label">
-									Contact Number
-									<span class="text-danger">*</span>
-								</label>
-								<div class="input-group">
-									<input type="text" class="form-control" placeholder="Enter Contact Number">
-								</div>
-							</div>
-							<div class="col-md-6 mb-3">
-								<label class="form-label">
-									Email ID
-								</label>
-								<div class="input-group">
-									<input type="text" class="form-control" placeholder="Enter Email ID">
-								</div>
-							</div>
-							<div class="col-md-12 text-center mt-3">
-								<a href="javascript:;" class="btn submit_blood">Submit</a>
-							</div>
-						</div>
+						</form>
+						{% endif %}
 					</div>
 				</div>
 			</div>

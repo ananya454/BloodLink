@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Closest Available Hospitals - BloodLink</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet"> 
+    <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="css/slicknav.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/swiper-bundle.min.css">
+    <link href="css/all.min.css" rel="stylesheet">
+    <link href="css/animate.css" rel="stylesheet">
+    <link href="css/magnific-popup.css" rel="stylesheet">
+    <link href="css/custom.css" rel="stylesheet">
+    <link href="css/responsive.css" rel="stylesheet">
+    <style>
+        .hospital-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 22px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .hospital-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+        .blood-badge {
+            background-color: #dc3545;
+            color: #ffffff;
+            font-size: 1.1rem;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-weight: 700;
+        }
+        .distance-badge {
+            background-color: #0284c7;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 13px;
+            padding: 5px 11px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+        }
+        .units-badge {
+            background-color: #eef2ff;
+            color: #3730a3;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 8px;
+            display: inline-block;
+            font-size: 13px;
+        }
+        .status-available {
+            background-color: #d1fae5;
+            color: #065f46;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+        .status-low {
+            background-color: #fef3c7;
+            color: #92400e;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+        .patient-banner {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 25px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="main-header">
+        <div class="header-sticky">
+            <nav class="navbar navbar-expand-lg">
+                <div class="container">
+                    <a class="navbar-brand" href="/"><img src="images/logo.png" alt="BloodLink"></a>
+                        
+                    <div class="collapse navbar-collapse main-menu">
+                        <ul class="navbar-nav mr-auto" id="menu">
+                            <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                            <li class="nav-item"><a class="nav-link" href="javascript:;">About Us</a></li>
+                            <li class="nav-item"><a class="nav-link active" href="/find-blood">Find Blood</a></li>
+                            <li class="nav-item"><a class="nav-link" href="javascript:;">Donate Blood</a></li>
+                        </ul>
+                    </div>
+                    <div class="navbar-toggle"></div>                        
+                </div>
+            </nav>
+            <div class="responsive-menu"></div>
+        </div>
+    </header>
+
+    <section class="find-blood-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="back_btn">
+                        <a href="/find-blood"><i class="fa fa-arrow-left"></i> Change Blood Request</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Patient and Search Summary Banner -->
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="patient-banner">
+                        <div class="row align-items-center">
+                            <div class="col-md-7">
+                                <h4 class="mb-1" style="font-size: 20px; font-weight: 700; color: #1e293b;">
+                                    Closest Hospitals for <span class="blood-badge ms-1">{{ blood_group }}</span>
+                                </h4>
+                                <p class="text-muted mb-0" style="font-size: 14px;">
+                                    <i class="fa fa-map-marker-alt text-danger me-1"></i> Location: <strong>{{ location }}</strong>
+                                    {% if units %} | Need: <strong>{{ units }} Unit(s)</strong>{% endif %}
+                                    {% if urgency %} | Urgency: <span class="badge bg-danger">{{ urgency }}</span>{% endif %}
+                                </p>
+                            </div>
+                            {% if patient_name %}
+                            <div class="col-md-5 text-md-end mt-2 mt-md-0">
+                                <span class="text-muted" style="font-size: 13px;">Request for:</span>
+                                <div class="fw-bold" style="color: #0f172a;">{{ patient_name }} ({{ contact_number }})</div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                        <h3 style="font-size: 22px; font-weight: 700; color: #1e293b;">
+                            Available Hospitals (Sorted by Distance)
+                        </h3>
+                        {% if total_found > 0 %}
+                        <span class="badge bg-dark py-2 px-3 fs-6">
+                            {{ total_found }} Hospital{% if total_found > 1 %}s{% endif %} Found
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    {% if error_message %}
+                    <div class="alert alert-warning text-center p-4" style="border-radius: 12px;">
+                        <i class="fa fa-exclamation-triangle fa-2x mb-3 text-warning"></i>
+                        <h5>{{ error_message }}</h5>
+                        <a href="/find-blood" class="btn submit_blood mt-2">Go to Blood Search</a>
+                    </div>
+
+                    {% elif hospitals %}
+                        <!-- Closest Hospital Cards -->
+                        <div class="row">
+                            {% for hospital in hospitals %}
+                            <div class="col-md-6 mb-4">
+                                <div class="hospital-card h-100 d-flex flex-column justify-content-between">
+                                    <div>
+                                        <!-- Header: Name, Distance, Status -->
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h4 style="font-size: 18px; font-weight: 700; color: #0f172a; margin-right: 8px;">
+                                                {{ hospital.hospital_name }}
+                                            </h4>
+                                            <span class="distance-badge text-nowrap">
+                                                <i class="fa fa-location-arrow me-1"></i>{{ hospital.distance }}
+                                            </span>
+                                        </div>
+
+                                        <!-- Address -->
+                                        <p class="text-muted mb-2" style="font-size: 13.5px; line-height: 1.4;">
+                                            <i class="fa fa-map-marker-alt text-danger me-1"></i> {{ hospital.address }}
+                                        </p>
+
+                                        <!-- Units & Status Badges -->
+                                        <div class="d-flex flex-wrap gap-2 mb-3">
+                                            <span class="units-badge">
+                                                <i class="fa fa-tint text-danger me-1"></i> {{ hospital.units }} Unit{% if hospital.units > 1 %}s{% endif %} Available
+                                            </span>
+                                            {% if hospital.status == 'Available' %}
+                                                <span class="status-available"><i class="fa fa-check-circle"></i> In Stock</span>
+                                            {% else %}
+                                                <span class="status-low"><i class="fa fa-exclamation-circle"></i> Low Stock</span>
+                                            {% endif %}
+                                            {% if hospital.phone and hospital.phone != 'N/A' %}
+                                            <span class="badge bg-light text-dark border py-2 px-2" style="font-size: 12px;">
+                                                <i class="fa fa-phone-alt text-primary me-1"></i> {{ hospital.phone }}
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <!-- Action: Request Blood Button -->
+                                    <div class="pt-3 border-top mt-2">
+                                        <form action="/request-blood" method="POST">
+                                            <input type="hidden" name="hospital_id" value="{{ hospital.hospital_id }}">
+                                            <input type="hidden" name="blood_group" value="{{ blood_group }}">
+                                            <input type="hidden" name="name" value="{{ patient_name }}">
+                                            <input type="hidden" name="phone" value="{{ contact_number }}">
+                                            <input type="hidden" name="email" value="{{ email }}">
+                                            <input type="hidden" name="units" value="{{ units }}">
+                                            <input type="hidden" name="urgency" value="{{ urgency }}">
+                                            <input type="hidden" name="location" value="{{ location }}">
+                                            <input type="hidden" name="distance" value="{{ hospital.distance }}">
+                                            <button type="submit" class="btn submit_blood w-100 text-center py-2" style="font-size: 15px; font-weight: 600;">
+                                                Request Blood <i class="fa fa-arrow-right ms-1"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                    {% elif blood_group %}
+                        <!-- No Matching Hospitals -->
+                        <div class="alert alert-secondary text-center p-5 my-4" style="border-radius: 14px; background: #fdf2f2; border: 1px solid #fecaca;">
+                            <i class="fa fa-heart-broken fa-3x mb-3 text-danger"></i>
+                            <h3 style="color: #991b1b; font-size: 22px; font-weight: 700;">No hospitals currently have this blood group available.</h3>
+                            <p class="text-muted mt-2" style="font-size: 16px;">
+                                Currently, none of the hospitals in our inventory have available units of <strong>{{ blood_group }}</strong> blood.
+                            </p>
+                            <div class="mt-4">
+                                <a href="/find-blood" class="btn submit_blood d-inline-block px-4 py-2">
+                                    <i class="fa fa-search me-1"></i> Try Another Blood Group
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="js/jquery-3.7.1.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/jquery.slicknav.js"></script>
+    <script src="js/swiper-bundle.min.js"></script>
+    <script src="js/jquery.magnific-popup.min.js"></script>
+    <script src="js/SmoothScroll.js"></script>
+    <script src="js/gsap.min.js"></script>
+    <script src="js/SplitText.js"></script>
+    <script src="js/ScrollTrigger.min.js"></script>
+    <script src="js/wow.js"></script>
+    <script src="js/function.js"></script>
+</body>
+</html>

@@ -28,9 +28,9 @@
 						
 					<div class="collapse navbar-collapse main-menu">
 						<ul class="navbar-nav mr-auto" id="menu">
-							<li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+							<li class="nav-item"><a class="nav-link" href="/">Home</a></li>
 							<li class="nav-item"><a class="nav-link" href="javascript:;">About Us</a></li>
-							<li class="nav-item"><a class="nav-link" href="find-blood.html">Find Blood</a></li>
+							<li class="nav-item"><a class="nav-link active" href="/availability">Find Blood</a></li>
 							<li class="nav-item"><a class="nav-link" href="javascript:;">Donate Blood</a></li>
 						</ul>
 					</div>
@@ -46,7 +46,7 @@
 			<div class="row">
 				<div class="col-lg-5">
 					<div class="back_btn">
-						<a href="index.html"><i class="fa fa-arrow-left"></i> Back to Home</a>
+						<a href="/"><i class="fa fa-arrow-left"></i> Back to Home</a>
 					</div>
 				</div>
 			</div>
@@ -54,20 +54,24 @@
 				<div class="col-lg-8">
 					<div class="request_blood_block">
 						<h2>Request Blood</h2>
-						<p>Submit a blood request and we'll notify registered donors in your area.</p>
+						<p>Submit a blood request and we'll check availability across nearby hospitals.</p>
+						<form action="/find-blood" method="POST">
+						<input type="hidden" name="user_lat" id="user_lat">
+						<input type="hidden" name="user_lon" id="user_lon">
+
 						<div class="row mt-4">
 							<div class="col-lg-12 mb-3">
 								<label class="form-label">Required Blood Group: <span class="text-danger">*</span></label>
-								<select class="form-select">
-									<option value="-1">Select Blood Group</option>
-									<option value="1">A+</option>
-									<option value="2">A-</option>
-									<option value="3">B+</option>
-									<option value="4">B-</option>
-									<option value="5">AB+</option>
-									<option value="6">AB-</option>
-									<option value="7">O+</option>
-									<option value="8">O-</option>
+								<select name="blood_group" class="form-select" required>
+									<option value="" disabled selected>Select Blood Group</option>
+									<option value="A+">A+</option>
+									<option value="A-">A-</option>
+									<option value="B+">B+</option>
+									<option value="B-">B-</option>
+									<option value="AB+">AB+</option>
+									<option value="AB-">AB-</option>
+									<option value="O+">O+</option>
+									<option value="O-">O-</option>
 								</select>
 							</div>
 							<div class="col-lg-12">
@@ -76,7 +80,7 @@
 										Urgency Level <span class="text-danger">*</span>
 									</label>
 									<div class="urgency-option">
-										<input type="radio" id="critical" name="urgency" class="urgency-radio" checked>
+										<input type="radio" id="critical" name="urgency" value="Critical" class="urgency-radio" checked>
 										<label for="critical" class="urgency-card">
 											<div class="d-flex align-items-center">
 												<span class="radio-circle"></span>
@@ -89,7 +93,7 @@
 										</label>
 									</div>
 									<div class="urgency-option">
-										<input type="radio" id="urgent" name="urgency" class="urgency-radio">
+										<input type="radio" id="urgent" name="urgency" value="Urgent" class="urgency-radio">
 										<label for="urgent" class="urgency-card">
 											<div class="d-flex align-items-center">
 												<span class="radio-circle"></span>
@@ -102,7 +106,7 @@
 										</label>
 									</div>
 									<div class="urgency-option">
-										<input type="radio" id="planned" name="urgency" class="urgency-radio">
+										<input type="radio" id="planned" name="urgency" value="Planned" class="urgency-radio">
 										<label for="planned" class="urgency-card">
 											<div class="d-flex align-items-center">
 												<span class="radio-circle"></span>
@@ -118,19 +122,19 @@
 								<div class="date_time mb-3">
 									<div class="row">
 										<div class="col-md-6">
-											<label class="form-label ">
-												Date Needed <span class="text-danger">*</span>
+											<label class="form-label">
+												Date Needed
 											</label>
 											<div class="input-group">
-												<input type="date" class="form-control">
+												<input type="date" name="date_needed" class="form-control">
 											</div>
 										</div>
 										<div class="col-md-6">
-											<label class="form-label ">
-												Time Needed <span class="text-danger">*</span>
+											<label class="form-label">
+												Time Needed
 											</label>
 											<div class="input-group">
-												<input type="time" class="form-control">
+												<input type="time" name="time_needed" class="form-control">
 											</div>
 										</div>
 									</div>
@@ -138,23 +142,24 @@
 							</div>
 							<div class="col-md-6 mb-3">
 								<label class="form-label">
-									Location <span class="text-danger">*</span>
+									Your Location / Area <span class="text-danger">*</span>
 								</label>
 								<div class="input-group">
-									<input type="text" class="form-control" placeholder="Enter Location">
+									<input type="text" name="location" id="userLocationInput" class="form-control" placeholder="e.g. New Panvel, Kharghar, Khanda Colony" required>
 								</div>
+								<small class="form-note text-muted">Used to find the closest hospitals.</small>
 							</div>
 							<div class="col-md-6 mb-3">
 								<label class="form-label">
 									Units of Blood Required
 									<span class="text-danger">*</span>
 								</label>
-								<select class="form-select">
-									<option>1 Unit</option>
-									<option>2 Units</option>
-									<option>3 Units</option>
-									<option>4 Units</option>
-									<option>5 Units</option>
+								<select name="units" class="form-select">
+									<option value="1" selected>1 Unit</option>
+									<option value="2">2 Units</option>
+									<option value="3">3 Units</option>
+									<option value="4">4 Units</option>
+									<option value="5">5 Units</option>
 								</select>
 								<small class="form-note">
 									Each unit is typically 500ml of whole blood
@@ -164,28 +169,21 @@
 								<div class="acknowledgement_card">
 									<h4>Acknowledgement & Declaration</h4>	
 									<div class="ack-wrapper">
-										<input type="checkbox" id="acknowledgement" class="form-check-input custom-checkbox">
+										<input type="checkbox" id="acknowledgement" class="form-check-input custom-checkbox" required checked>
 										<label for="acknowledgement" class="ack-content">
 											<strong>Voluntary Blood Donation Compliance:</strong>
-											I hereby declare and acknowledge in compliance with the Drugs and Cosmetics Act, 1940, and the National Blood Policy of India that:
-											<ul class="ack-list">
-												<li>This blood requirement is genuine and medically necessary</li>
-												<li>Blood donation is a purely voluntary act and the donor is coming entirely by their own free will with no coercion or pressure</li>
-												<li><strong>There is absolutely no monetary compensation, payment, financial transaction, or any form of financial advantage involved in this blood donation</strong></li>
-												<li>No donor will receive any payment, gifts, or financial benefits for donating blood</li>
-												<li>This platform is a free service connecting donors with those in need</li>
-												<li>I commit to treating the donor with utmost respect, dignity, and gratitude</li>
-												<li>I will provide necessary support and care to the donor during and after the donation</li>
-												<li>This request is in complete compliance with Indian laws and regulations governing voluntary blood donation</li>
-											</ul>
+											I hereby declare and acknowledge in compliance with the Drugs and Cosmetics Act, 1940, and the National Blood Policy of India that this blood requirement is genuine and medically necessary.
 										</label>
 									</div>
 								</div>
 							</div>
 							<div class="col-md-12 text-center">
-								<a href="thankyou.html" class="btn submit_blood">Submit Blood Request</a>
+								<button type="submit" class="btn submit_blood w-100 py-3" style="font-size: 17px; font-weight: 600;">
+									Continue to Contact Details <i class="fa fa-arrow-right ms-2"></i>
+								</button>
 							</div>
 						</div>
+						</form>
 					</div>
 				</div>
 			</div>
@@ -232,6 +230,20 @@
 				}
 			});
 		});
+
+		// Auto-populate coordinates if user enables geolocation
+		if (navigator.geolocation) {
+			navigator.geolocation.getCurrentPosition(function (position) {
+				const latInput = document.getElementById("user_lat");
+				const lonInput = document.getElementById("user_lon");
+				if (latInput && lonInput) {
+					latInput.value = position.coords.latitude;
+					lonInput.value = position.coords.longitude;
+				}
+			}, function () {
+				// Fallback to text location matching
+			});
+		}
 	</script>
 	
 </body>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Details - BloodLink</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet"> 
+    <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="css/slicknav.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/swiper-bundle.min.css">
+    <link href="css/all.min.css" rel="stylesheet">
+    <link href="css/animate.css" rel="stylesheet">
+    <link href="css/magnific-popup.css" rel="stylesheet">
+    <link href="css/custom.css" rel="stylesheet">
+    <link href="css/responsive.css" rel="stylesheet">
+    <style>
+        .request-summary-card {
+            background: #fff5f5;
+            border: 2px solid #fecaca;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        .blood-badge {
+            background-color: #dc3545;
+            color: #ffffff;
+            font-size: 1.1rem;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="main-header">
+        <div class="header-sticky">
+            <nav class="navbar navbar-expand-lg">
+                <div class="container">
+                    <a class="navbar-brand" href="/"><img src="images/logo.png" alt="BloodLink"></a>
+                        
+                    <div class="collapse navbar-collapse main-menu">
+                        <ul class="navbar-nav mr-auto" id="menu">
+                            <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                            <li class="nav-item"><a class="nav-link" href="javascript:;">About Us</a></li>
+                            <li class="nav-item"><a class="nav-link active" href="/find-blood">Find Blood</a></li>
+                            <li class="nav-item"><a class="nav-link" href="javascript:;">Donate Blood</a></li>
+                        </ul>
+                    </div>
+                    <div class="navbar-toggle"></div>                        
+                </div>
+            </nav>
+            <div class="responsive-menu"></div>
+        </div>
+    </header>
+
+    <section class="find-blood-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-5">
+                    <div class="back_btn">
+                        <a href="/find-blood"><i class="fa fa-arrow-left"></i> Back to Blood Request</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="request_blood_block">
+                        <h2>Step 2: Enter Your Contact Details</h2>
+                        <p>Provide your contact information so hospitals can coordinate blood dispatch with you.</p>
+
+                        <!-- Summary of Blood Requirement -->
+                        <div class="request-summary-card mt-3">
+                            <h5 class="fw-bold mb-3" style="color: #64050d;">
+                                <i class="fa fa-clipboard-list me-2"></i>Requested Blood Summary
+                            </h5>
+                            <div class="row g-2" style="font-size: 15px;">
+                                <div class="col-sm-6">
+                                    <strong>Blood Group:</strong> 
+                                    <span class="blood-badge ms-1">{{ blood_group or 'Not Specified' }}</span>
+                                </div>
+                                <div class="col-sm-6">
+                                    <strong>Units Needed:</strong> {{ units or '1' }} Unit(s)
+                                </div>
+                                <div class="col-sm-6">
+                                    <strong>Urgency:</strong> 
+                                    <span class="badge bg-danger">{{ urgency or 'Urgent' }}</span>
+                                </div>
+                                <div class="col-sm-6">
+                                    <strong>Your Location:</strong> 
+                                    <span><i class="fa fa-map-marker-alt text-danger me-1"></i>{{ location or 'Panvel' }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- User Contact Form -->
+                        <form action="/user-details" method="POST" class="mt-4">
+                            <!-- Hidden inputs to forward requirement parameters -->
+                            <input type="hidden" name="blood_group" value="{{ blood_group }}">
+                            <input type="hidden" name="urgency" value="{{ urgency }}">
+                            <input type="hidden" name="location" value="{{ location }}">
+                            <input type="hidden" name="units" value="{{ units }}">
+                            <input type="hidden" name="user_lat" value="{{ user_lat }}">
+                            <input type="hidden" name="user_lon" value="{{ user_lon }}">
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">
+                                        Patient / Requester Name <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="text" name="name" class="form-control" placeholder="Enter Full Name" required>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">
+                                        Contact Phone Number <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="tel" name="phone" class="form-control" placeholder="Enter 10-digit Mobile Number" required>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label">
+                                        Email ID <span class="text-muted">(Optional)</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="email" name="email" class="form-control" placeholder="Enter Email ID (Optional)">
+                                    </div>
+                                </div>
+
+                                <div class="col-md-12 text-center mt-3">
+                                    <button type="submit" class="btn submit_blood w-100 py-3" style="font-size: 17px; font-weight: 600; border-radius: 8px;">
+                                        Show Closest Available Hospitals <i class="fa fa-hospital ms-2"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="js/jquery-3.7.1.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/jquery.slicknav.js"></script>
+    <script src="js/swiper-bundle.min.js"></script>
+    <script src="js/jquery.magnific-popup.min.js"></script>
+    <script src="js/SmoothScroll.js"></script>
+    <script src="js/gsap.min.js"></script>
+    <script src="js/SplitText.js"></script>
+    <script src="js/ScrollTrigger.min.js"></script>
+    <script src="js/wow.js"></script>
+    <script src="js/function.js"></script>
+</body>
+</html>

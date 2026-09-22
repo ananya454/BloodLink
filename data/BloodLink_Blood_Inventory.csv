@@ -1,0 +1,201 @@
+inventory_id,hospital_id,blood_group,units,status
+1,H001,A+,3,Available
+2,H001,A-,8,Available
+3,H001,B+,0,Not Available
+4,H001,B-,12,Available
+5,H001,AB+,4,Available
+6,H001,AB-,20,Available
+7,H001,O+,1,Low Stock
+8,H001,O-,18,Available
+9,H002,A+,20,Available
+10,H002,A-,1,Low Stock
+11,H002,B+,6,Available
+12,H002,B-,10,Available
+13,H002,AB+,5,Available
+14,H002,AB-,12,Available
+15,H002,O+,2,Low Stock
+16,H002,O-,0,Not Available
+17,H003,A+,5,Available
+18,H003,A-,15,Available
+19,H003,B+,2,Low Stock
+20,H003,B-,0,Not Available
+21,H003,AB+,3,Available
+22,H003,AB-,25,Available
+23,H003,O+,20,Available
+24,H003,O-,10,Available
+25,H004,A+,20,Available
+26,H004,A-,5,Available
+27,H004,B+,1,Low Stock
+28,H004,B-,18,Available
+29,H004,AB+,0,Not Available
+30,H004,AB-,6,Available
+31,H004,O+,15,Available
+32,H004,O-,25,Available
+33,H005,A+,0,Not Available
+34,H005,A-,5,Available
+35,H005,B+,7,Available
+36,H005,B-,10,Available
+37,H005,AB+,18,Available
+38,H005,AB-,0,Not Available
+39,H005,O+,1,Low Stock
+40,H005,O-,4,Available
+41,H006,A+,1,Low Stock
+42,H006,A-,25,Available
+43,H006,B+,8,Available
+44,H006,B-,2,Low Stock
+45,H006,AB+,0,Not Available
+46,H006,AB-,10,Available
+47,H006,O+,18,Available
+48,H006,O-,15,Available
+49,H007,A+,1,Low Stock
+50,H007,A-,12,Available
+51,H007,B+,25,Available
+52,H007,B-,7,Available
+53,H007,AB+,5,Available
+54,H007,AB-,18,Available
+55,H007,O+,2,Low Stock
+56,H007,O-,0,Not Available
+57,H008,A+,2,Low Stock
+58,H008,A-,15,Available
+59,H008,B+,18,Available
+60,H008,B-,6,Available
+61,H008,AB+,0,Not Available
+62,H008,AB-,5,Available
+63,H008,O+,12,Available
+64,H008,O-,8,Available
+65,H009,A+,18,Available
+66,H009,A-,15,Available
+67,H009,B+,1,Low Stock
+68,H009,B-,10,Available
+69,H009,AB+,12,Available
+70,H009,AB-,3,Available
+71,H009,O+,0,Not Available
+72,H009,O-,7,Available
+73,H010,A+,1,Low Stock
+74,H010,A-,2,Low Stock
+75,H010,B+,0,Not Available
+76,H010,B-,7,Available
+77,H010,AB+,10,Available
+78,H010,AB-,4,Available
+79,H010,O+,5,Available
+80,H010,O-,20,Available
+81,H011,A+,18,Available
+82,H011,A-,15,Available
+83,H011,B+,3,Available
+84,H011,B-,25,Available
+85,H011,AB+,1,Low Stock
+86,H011,AB-,0,Not Available
+87,H011,O+,10,Available
+88,H011,O-,0,Not Available
+89,H012,A+,15,Available
+90,H012,A-,7,Available
+91,H012,B+,3,Available
+92,H012,B-,20,Available
+93,H012,AB+,1,Low Stock
+94,H012,AB-,6,Available
+95,H012,O+,0,Not Available
+96,H012,O-,4,Available
+97,H013,A+,2,Low Stock
+98,H013,A-,12,Available
+99,H013,B+,25,Available
+100,H013,B-,20,Available
+101,H013,AB+,7,Available
+102,H013,AB-,0,Not Available
+103,H013,O+,6,Available
+104,H013,O-,15,Available
+105,H014,A+,15,Available
+106,H014,A-,18,Available
+107,H014,B+,4,Available
+108,H014,B-,2,Low Stock
+109,H014,AB+,1,Low Stock
+110,H014,AB-,0,Not Available
+111,H014,O+,0,Not Available
+112,H014,O-,10,Available
+113,H015,A+,5,Available
+114,H015,A-,7,Available
+115,H015,B+,25,Available
+116,H015,B-,3,Available
+117,H015,AB+,0,Not Available
+118,H015,AB-,0,Not Available
+119,H015,O+,10,Available
+120,H015,O-,2,Low Stock
+121,H016,A+,10,Available
+122,H016,A-,0,Not Available
+123,H016,B+,6,Available
+124,H016,B-,15,Available
+125,H016,AB+,12,Available
+126,H016,AB-,1,Low Stock
+127,H016,O+,20,Available
+128,H016,O-,3,Available
+129,H017,A+,18,Available
+130,H017,A-,8,Available
+131,H017,B+,0,Not Available
+132,H017,B-,15,Available
+133,H017,AB+,20,Available
+134,H017,AB-,5,Available
+135,H017,O+,6,Available
+136,H017,O-,2,Low Stock
+137,H018,A+,25,Available
+138,H018,A-,7,Available
+139,H018,B+,1,Low Stock
+140,H018,B-,6,Available
+141,H018,AB+,15,Available
+142,H018,AB-,8,Available
+143,H018,O+,0,Not Available
+144,H018,O-,12,Available
+145,H019,A+,4,Available
+146,H019,A-,20,Available
+147,H019,B+,1,Low Stock
+148,H019,B-,0,Not Available
+149,H019,AB+,15,Available
+150,H019,AB-,2,Low Stock
+151,H019,O+,6,Available
+152,H019,O-,18,Available
+153,H020,A+,6,Available
+154,H020,A-,7,Available
+155,H020,B+,18,Available
+156,H020,B-,10,Available
+157,H020,AB+,1,Low Stock
+158,H020,AB-,0,Not Available
+159,H020,O+,0,Not Available
+160,H020,O-,4,Available
+161,H021,A+,20,Available
+162,H021,A-,7,Available
+163,H021,B+,8,Available
+164,H021,B-,2,Low Stock
+165,H021,AB+,0,Not Available
+166,H021,AB-,3,Available
+167,H021,O+,6,Available
+168,H021,O-,5,Available
+169,H022,A+,0,Not Available
+170,H022,A-,15,Available
+171,H022,B+,1,Low Stock
+172,H022,B-,3,Available
+173,H022,AB+,4,Available
+174,H022,AB-,7,Available
+175,H022,O+,5,Available
+176,H022,O-,20,Available
+177,H023,A+,0,Not Available
+178,H023,A-,12,Available
+179,H023,B+,25,Available
+180,H023,B-,20,Available
+181,H023,AB+,6,Available
+182,H023,AB-,5,Available
+183,H023,O+,4,Available
+184,H023,O-,1,Low Stock
+185,H024,A+,15,Available
+186,H024,A-,4,Available
+187,H024,B+,0,Not Available
+188,H024,B-,5,Available
+189,H024,AB+,20,Available
+190,H024,AB-,25,Available
+191,H024,O+,0,Not Available
+192,H024,O-,1,Low Stock
+193,H025,A+,0,Not Available
+194,H025,A-,5,Available
+195,H025,B+,1,Low Stock
+196,H025,B-,4,Available
+197,H025,AB+,6,Available
+198,H025,AB-,20,Available
+199,H025,O+,3,Available
+200,H025,O-,8,Available
