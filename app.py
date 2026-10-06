@@ -223,6 +223,12 @@ def home():
     return render_template('index.html', valid_blood_groups=VALID_BLOOD_GROUPS)
 
 
+@app.route('/about')
+def about():
+    """About Us page route."""
+    return render_template('about.html')
+
+
 @app.route('/find-blood', methods=['GET', 'POST'])
 def find_blood():
     """
@@ -439,10 +445,9 @@ def page_not_found(e):
 def internal_server_error(e):
     return render_template('index.html', error_message="An internal server error occurred."), 500
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     print("==================================================")
     print("  Starting BloodLink Flask Web Application...")
-    print("  Open your browser at: http://127.0.0.1:5000/")
+    print("  Open your browser at: http://127.0.0.1:5001/")
     print("==================================================")
-    app.run(debug=True, host='127.0.0.1', port=5000)
+    app.run(debug=True, port=5001)
