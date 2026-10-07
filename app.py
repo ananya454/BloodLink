@@ -7,15 +7,40 @@ Flow: Home -> Find Blood Form -> User Details -> Closest Hospitals with Availabi
 import os
 import csv
 import math
-from flask import Flask, render_template, request, redirect, url_for, flash
+import time
+import psycopg2
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+
 
 app = Flask(
     __name__,
-    template_folder='.',     # Load templates from root directory
-    static_folder='.',       # Serve CSS, JS, images, webfonts from root directory
-    static_url_path=''       # Relative static paths work as-is
+    template_folder='.',
+    static_folder='.',
+    static_url_path=''
 )
+
 app.secret_key = 'bloodlink-btech-secret-key'
+
+
+# -------------------------------------------------------------
+# PostgreSQL Database Connection
+# -------------------------------------------------------------
+
+DB_HOST = "localhost"
+DB_PORT = "5433"
+DB_NAME = "bloodlink"
+DB_USER = "postgres"
+DB_PASSWORD = "system"
+
+
+def get_db_connection():
+    return psycopg2.connect(
+        host=DB_HOST,
+        port=DB_PORT,
+        dbname=DB_NAME,
+        user=DB_USER,
+       password =DB_PASSWORD
+    )
 
 # Valid standard blood groups
 VALID_BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
@@ -154,6 +179,279 @@ def load_blood_inventory():
 
     return inventory
 
+def load_delivery_partners():
+    """Loads delivery partner information from CSV."""
+    csv_path = get_csv_path('delivery_partners.csv')
+
+    if not csv_path:
+        print("[ERROR] delivery_partners.csv not found!")
+        return []
+
+    partners = []
+
+    try:
+        with open(csv_path, mode='r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+
+            for row in reader:
+                clean_row = {
+                    k.strip(): v.strip()
+                    for k, v in row.items()
+                    if k is not None
+                }
+                partners.append(clean_row)
+
+    except Exception as e:
+        print(f"[ERROR] Failed to load delivery partners CSV: {e}")
+        return []
+
+    return partners
+
+
+def load_deliveries():
+    """Loads delivery records from CSV."""
+    csv_path = get_csv_path('deliveries.csv')
+
+    if not csv_path:
+        print("[ERROR] deliveries.csv not found!")
+        return []
+
+    deliveries = []
+
+    try:
+        with open(csv_path, mode='r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+
+            for row in reader:
+                clean_row = {
+                    k.strip(): v.strip()
+                    for k, v in row.items()
+                    if k is not None
+                }
+                deliveries.append(clean_row)
+
+    except Exception as e:
+        print(f"[ERROR] Failed to load deliveries CSV: {e}")
+        return []
+
+    return deliveries
+
+
+def load_location_updates():
+    """Loads delivery location updates from CSV."""
+    csv_path = get_csv_path('location_updates.csv')
+
+    if not csv_path:
+        print("[ERROR] location_updates.csv not found!")
+        return []
+
+    updates = []
+
+    try:
+        with open(csv_path, mode='r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+
+            for row in reader:
+                clean_row = {
+                    k.strip(): v.strip()
+                    for k, v in row.items()
+                    if k is not None
+                }
+                updates.append(clean_row)
+
+    except Exception as e:
+        print(f"[ERROR] Failed to load location updates CSV: {e}")
+        return []
+
+    return updates
+
+def get_latest_location(delivery_id):
+    """
+    Gets the latest location of a delivery.
+    For now, this simulates movement using predefined coordinates.
+    """
+
+    updates = load_location_updates()
+
+    delivery_updates = [
+        update for update in updates
+        if update.get('delivery_id') == delivery_id
+    ]
+
+    if not delivery_updates:
+        return None
+
+    latest = delivery_updates[-1]
+
+    return {
+        'delivery_id': delivery_id,
+        'latitude': float(latest.get('latitude', 0)),
+        'longitude': float(latest.get('longitude', 0)),
+        'status': latest.get('status', 'Unknown'),
+        'timestamp': latest.get('timestamp', '')
+    }
+
+# -------------------------------------------------------------
+# Live Delivery Location API - PostgreSQL
+# -------------------------------------------------------------
+
+@app.route('/api/delivery/<delivery_id>/location')
+def delivery_location_api(delivery_id):
+    """
+    Returns the latest GPS location for a delivery
+    from the PostgreSQL location_updates table.
+    """
+
+    conn = None
+    cursor = None
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # For the current frontend, D001 refers to
+        # the first database delivery (ID = 1).
+        if delivery_id == "D001":
+            database_delivery_id = 1
+        else:
+            database_delivery_id = int(
+                delivery_id.replace("D", "")
+            )
+
+        query = """
+            SELECT
+                d.id AS delivery_id,
+                d.status,
+                d.eta_minutes,
+                p.partner_name,
+                p.phone,
+                lu.latitude,
+                lu.longitude,
+                lu.recorded_at
+            FROM deliveries d
+            JOIN delivery_partners p
+                ON d.partner_id = p.id
+            JOIN location_updates lu
+                ON lu.delivery_id = d.id
+            WHERE d.id = %s
+            ORDER BY lu.recorded_at DESC
+            LIMIT 1;
+        """
+
+        cursor.execute(query, (database_delivery_id,))
+        result = cursor.fetchone()
+
+        if result is None:
+            return jsonify({
+                "success": False,
+                "message": "No location data found for this delivery"
+            }), 404
+
+        (
+            db_delivery_id,
+            status,
+            eta_minutes,
+            partner_name,
+            phone,
+            latitude,
+            longitude,
+            recorded_at
+        ) = result
+
+        return jsonify({
+            "success": True,
+            "data": {
+                "delivery_id": delivery_id,
+                "partner_name": partner_name,
+                "latitude": float(latitude),
+                "longitude": float(longitude),
+                "status": status,
+                "eta_minutes": eta_minutes,
+                "timestamp": recorded_at.isoformat()
+            }
+        })
+
+    except Exception as e:
+        print("[ERROR] Live tracking API:", e)
+
+        return jsonify({
+            "success": False,
+            "message": "Database error",
+            "error": str(e)
+        }), 500
+
+    finally:
+        if cursor:
+            cursor.close()
+
+        if conn:
+            conn.close()
+
+@app.route('/live-tracking')
+def live_tracking():
+    return render_template('live-tracking.html')
+
+@app.route('/deliveries')
+def deliveries():
+    """Displays all delivery records."""
+
+    delivery_data = load_deliveries()
+    partners = load_delivery_partners()
+
+    partner_map = {
+        partner.get('partner_id'): partner
+        for partner in partners
+    }
+
+    for delivery in delivery_data:
+        partner_id = delivery.get('partner_id', '')
+        delivery['partner'] = partner_map.get(partner_id, {})
+
+    return render_template(
+        'deliveries.html',
+        deliveries=delivery_data
+    )
+
+@app.route('/delivery/<delivery_id>')
+def delivery_details(delivery_id):
+    """Displays details of a specific delivery."""
+
+    delivery_data = load_deliveries()
+    partners = load_delivery_partners()
+    updates = load_location_updates()
+
+    delivery = None
+
+    for item in delivery_data:
+        if item.get('delivery_id') == delivery_id:
+            delivery = item
+            break
+
+    if delivery is None:
+        return render_template(
+            'index.html',
+            error_message="Delivery not found."
+        ), 404
+
+    partner = None
+
+    for item in partners:
+        if item.get('partner_id') == delivery.get('partner_id'):
+            partner = item
+            break
+
+    delivery_updates = []
+
+    for update in updates:
+        if update.get('delivery_id') == delivery_id:
+            delivery_updates.append(update)
+
+    return render_template(
+        'delivery-details.html',
+        delivery=delivery,
+        partner=partner,
+        location_updates=delivery_updates
+    )
 
 def search_closest_hospitals(blood_group, location_str="", user_lat=None, user_lon=None, units_needed=1):
     """
