@@ -5,3 +5,27 @@ __pycache__/
 .env
 .DS_Store
 .vscode/
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+
+# Environment variables & secrets (Never push actual passwords)
+.env
+
+# Database local dumps
+*.dump
+*.sql.bak
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+.env
