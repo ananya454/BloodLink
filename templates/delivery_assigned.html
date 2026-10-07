@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Assigned | BloodLink</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/delivery.css') }}">
+</head>
+<body>
+    <header class="bl-header">
+        <a class="bl-logo" href="/">BloodLink</a>
+        <span class="header-label">Blood Delivery</span>
+    </header>
+
+    <main class="page-shell">
+        <section class="hero-card">
+            <div class="success-icon">✓</div>
+            <p class="eyebrow">BloodLink Delivery</p>
+            <h1>Delivery Partner Assigned</h1>
+            <p class="subtext">Your blood request has been assigned to a delivery partner.</p>
+        </section>
+
+        <section class="delivery-card">
+            <div class="partner-header">
+                <div class="avatar">{{ partner_name[0]|upper if partner_name else 'D' }}</div>
+                <div>
+                    <h2>{{ partner_name }}</h2>
+                    <p>{{ vehicle_type }}</p>
+                </div>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Phone</span>
+                    <strong>{{ partner_phone }}</strong>
+                </div>
+
+                <div class="info-item">
+                    <span class="info-label">Status</span>
+                    <strong class="status-pill" id="delivery-status">{{ status }}</strong>
+                </div>
+
+                <div class="info-item full-width">
+                    <span class="info-label">Pickup</span>
+                    <strong>{{ hospital_name }}</strong>
+                </div>
+
+                <div class="route-row full-width">
+                    <div class="route-point pickup-point"></div>
+                    <div class="route-line"></div>
+                    <div class="route-point destination-point"></div>
+                    <div class="route-text">
+                        <div>
+                            <span>Hospital / Pickup</span>
+                            <strong>{{ hospital_name }}</strong>
+                        </div>
+                        <div>
+                            <span>Destination</span>
+                            <strong>{{ destination }}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="eta-box full-width">
+                    <span class="info-label">Current ETA</span>
+                    <strong id="eta-display">{{ eta_minutes }} min away</strong>
+                </div>
+            </div>
+
+            <a class="primary-btn" href="{{ tracking_url }}">
+                Track Delivery
+                <span>→</span>
+            </a>
+        </section>
+    </main>
+</body>
+</html>

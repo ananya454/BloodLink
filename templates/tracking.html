@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Delivery | BloodLink</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/delivery.css') }}">
+</head>
+<body>
+    <header class="bl-header">
+        <a class="bl-logo" href="/">BloodLink</a>
+        <span class="header-label">Live Delivery</span>
+    </header>
+
+    <main class="page-shell tracking-shell"
+          id="tracking-app"
+          data-eta-minutes="{{ eta_minutes|default(0) }}"
+          data-status="{{ status|default('On the way') }}">
+
+        <section class="tracking-top">
+            <div>
+                <p class="eyebrow">BloodLink Tracking</p>
+                <h1>Track Delivery</h1>
+                <p class="subtext">Follow your delivery status below.</p>
+            </div>
+            <div class="live-badge">
+                <span class="live-dot"></span>
+                Tracking
+            </div>
+        </section>
+
+        <section class="tracking-grid">
+            <div class="map-card">
+                <div class="map-header">
+                    <span>Delivery route</span>
+                    <span id="map-status">{{ status }}</span>
+                </div>
+
+                <div class="map-visual" aria-label="Delivery route visual">
+                    <div class="road road-one"></div>
+                    <div class="road road-two"></div>
+                    <div class="route-path">
+                        <span class="route-progress" id="route-progress"></span>
+                    </div>
+
+                    <div class="map-marker pickup-marker">
+                        <span>H</span>
+                        <small>Pickup</small>
+                    </div>
+
+                    <div class="rider-marker" id="rider-marker">
+                        <span>🚴</span>
+                        <small>Partner</small>
+                    </div>
+
+                    <div class="map-marker destination-marker">
+                        <span>●</span>
+                        <small>Destination</small>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="details-card">
+                <div class="partner-header">
+                    <div class="avatar">{{ partner_name[0]|upper if partner_name else 'D' }}</div>
+                    <div>
+                        <h2>{{ partner_name }}</h2>
+                        <p>{{ vehicle_type }}</p>
+                    </div>
+                </div>
+
+                <div class="detail-list">
+                    <div>
+                        <span>Delivery status</span>
+                        <strong id="status-text">{{ status }}</strong>
+                    </div>
+                    <div>
+                        <span>ETA</span>
+                        <strong id="eta-display">{{ eta_minutes }} min away</strong>
+                    </div>
+                    <div>
+                        <span>Pickup</span>
+                        <strong>{{ hospital_name }}</strong>
+                    </div>
+                    <div>
+                        <span>Destination</span>
+                        <strong>{{ destination }}</strong>
+                    </div>
+                </div>
+
+                <div class="progress-section">
+                    <div class="progress-label">
+                        <span>Delivery progress</span>
+                        <strong id="progress-percent">0%</strong>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-bar" id="progress-bar"></div>
+                    </div>
+                </div>
+
+                <div class="arrival-message" id="arrival-message" hidden>
+                    <span class="arrival-icon">✓</span>
+                    <div>
+                        <strong>Arrived at Location</strong>
+                        <p>Your delivery partner has reached the destination.</p>
+                    </div>
+                </div>
+            </aside>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/tracking.js') }}"></script>
+</body>
+</html>
