@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>BloodLink - Live Delivery Tracking</title>
+
+    <!-- Leaflet CSS -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+
+        .header {
+            padding: 20px;
+            background-color: #8B0000;
+            color: white;
+            text-align: center;
+        }
+
+        .container {
+            padding: 20px;
+        }
+
+        .tracking-box {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        #map {
+            height: 500px;
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        .status {
+            font-size: 18px;
+            margin-top: 10px;
+        }
+
+        .live {
+            color: green;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>BloodLink</h1>
+        <p>Live Blood Delivery Tracking</p>
+    </div>
+
+    <div class="container">
+
+        <div class="tracking-box">
+
+            <h2>Delivery Tracking</h2>
+
+            <p>
+                <strong>Delivery ID:</strong>
+                <span id="delivery-id">D001</span>
+            </p>
+
+            <p>
+                <strong>Status:</strong>
+                <span id="status">Connecting...</span>
+            </p>
+
+<p>
+    <strong>ETA:</strong>
+    <span id="eta">Calculating...</span>
+</p>
+
+            <p>
+                <strong>Latitude:</strong>
+                <span id="latitude">--</span>
+            </p>
+
+            <p>
+                <strong>Longitude:</strong>
+                <span id="longitude">--</span>
+            </p>
+
+            <p>
+                <strong>Last Updated:</strong>
+                <span id="timestamp">--</span>
+            </p>
+
+            <p class="status">
+                ● <span id="connection-status">Connecting to tracking...</span>
+            </p>
+
+        </div>
+        <div id="map"></div>
+    </div>
+
+    <!-- Leaflet JavaScript -->
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    </script>
+
+<script>
+
+    // Delivery ID to track
+    const deliveryId = "D002";
+
+    // Initial map position
+    const initialLatitude = 19.0205;
+    const initialLongitude = 73.0935;
+
+    // Create map
+    const map = L.map('map').setView(
+        [initialLatitude, initialLongitude],
+        14
+    );
+
+    // OpenStreetMap tiles
+    L.tileLayer(
+        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        {
+            attribution: '&copy; OpenStreetMap contributors'
+        }
+    ).addTo(map);
+
+    // Custom driver marker
+const driverIcon = L.divIcon({
+    className: 'driver-marker',
+    html: '🏍️',
+    iconSize: [60, 60],
+    iconAnchor: [30, 30]
+});
+
+let deliveryMarker = L.marker(
+    [initialLatitude, initialLongitude],
+    {
+        icon: driverIcon
+    }
+).addTo(map);
+
+// Red trail showing the bike's travelled path
+let travelledPath = [
+    [initialLatitude, initialLongitude]
+];
+
+const routeTrail = L.polyline(travelledPath, {
+    color: 'red',
+    weight: 5,
+    opacity: 0.85,
+    lineCap: 'round',
+    lineJoin: 'round'
+}).addTo(map);
+
+    // Destination marker
+    let destinationMarker = null;
+
+    deliveryMarker.bindPopup(
+        "Blood Delivery: " + deliveryId
+    );
+
+
+    // =========================================================
+    // GET LATEST DELIVERY LOCATION
+    // =========================================================
+
+    async function updateLocation() {
+
+    try {
+
+        const response = await fetch(
+            `/api/delivery/${deliveryId}/location`
+        );
+
+        const result = await response.json();
+
+        if (!result.success) {
+            document.getElementById("connection-status").textContent =
+                "Delivery not found";
+            return;
+        }
+
+        const location = result.data;
+
+        document.getElementById("delivery-id").textContent =
+            location.delivery_id;
+
+        document.getElementById("latitude").textContent =
+            location.latitude ?? "--";
+
+        document.getElementById("longitude").textContent =
+            location.longitude ?? "--";
+
+        const status = location.status || "Assigned";
+
+        document.getElementById("status").textContent =
+            status;
+
+        const etaMinutes = Number(location.eta_minutes || 0);
+
+        document.getElementById("eta").textContent =
+            etaMinutes > 0
+                ? etaMinutes + " minutes"
+                : status.toLowerCase() === "arrived"
+                    ? "Driver has arrived"
+                    : "Calculating...";
+
+        document.getElementById("timestamp").textContent =
+            location.recorded_at
+                ? new Date(location.recorded_at).toLocaleString()
+                : "Waiting for first location update...";
+
+        document.getElementById("connection-status").textContent =
+            "Live tracking active";
+
+        if (
+            location.latitude !== null &&
+            location.longitude !== null
+        ) {
+
+            const newLat = Number(location.latitude);
+            const newLng = Number(location.longitude);
+
+            deliveryMarker.setLatLng([
+                newLat,
+                newLng
+            ]);
+
+            const lastPoint =
+                travelledPath[travelledPath.length - 1];
+
+            if (
+                lastPoint[0] !== newLat ||
+                lastPoint[1] !== newLng
+            ) {
+
+                travelledPath.push([
+                    newLat,
+                    newLng
+                ]);
+
+                routeTrail.setLatLngs(
+                    travelledPath
+                );
+
+                map.panTo(
+                    [newLat, newLng],
+                    {
+                        animate: true,
+                        duration: 1
+                    }
+                );
+            }
+
+            deliveryMarker.bindPopup(
+                "<b>Delivery Partner</b><br>" +
+                "Name: " +
+                (location.partner_name || "N/A") +
+                "<br>Phone: " +
+                (location.phone || "N/A") +
+                "<br>Vehicle: " +
+                (location.vehicle_type || "N/A") +
+                "<br>Status: " +
+                (location.status || "N/A")
+            );
+        }
+
+        if (
+            location.destination_latitude !== null &&
+            location.destination_longitude !== null
+        ) {
+
+            const destinationLat =
+                Number(location.destination_latitude);
+
+            const destinationLng =
+                Number(location.destination_longitude);
+
+            if (destinationMarker === null) {
+
+                destinationMarker = L.marker([
+                    destinationLat,
+                    destinationLng
+                ]).addTo(map);
+
+                destinationMarker.bindPopup(
+                    "<b>Destination</b><br>" +
+                    (location.hospital_name || "Destination")
+                );
+            }
+        }
+
+        if (
+            location.latitude !== null &&
+            location.longitude !== null &&
+            location.destination_latitude !== null &&
+            location.destination_longitude !== null
+        ) {
+
+            const bounds = L.latLngBounds([
+                [
+                    Number(location.latitude),
+                    Number(location.longitude)
+                ],
+                [
+                    Number(location.destination_latitude),
+                    Number(location.destination_longitude)
+                ]
+            ]);
+
+            map.fitBounds(
+                bounds,
+                {
+                    padding: [40, 40]
+                }
+            );
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Tracking error:",
+            error
+        );
+
+        document.getElementById(
+            "connection-status"
+        ).textContent = "Connection error";
+    }
+}
+
+
+    // =========================================================
+    // START TRACKING
+    // =========================================================
+
+    updateLocation();
+
+
+    // Refresh location every 3 seconds
+    setInterval(
+        updateLocation,
+        3000
+    );
+
+</script>
+</body>
+</html>

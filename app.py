@@ -10,6 +10,8 @@ import math
 import time
 import psycopg2
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from dotenv import load_dotenv
+from supabase import create_client
 
 
 app = Flask(
@@ -20,6 +22,19 @@ app = Flask(
 )
 
 app.secret_key = 'bloodlink-btech-secret-key'
+
+# -------------------------------------------------------------
+# Supabase Configuration
+# -------------------------------------------------------------
+load_dotenv()
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise RuntimeError("Supabase credentials not found in .env")
+
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
 # -------------------------------------------------------------
@@ -155,6 +170,102 @@ def load_hospitals():
 
     return hospitals
 
+def calculate_distance(lat1, lon1, lat2, lon2):
+    """Calculate approximate distance between two GPS coordinates in km."""
+    R = 6371
+
+    lat1 = math.radians(float(lat1))
+    lat2 = math.radians(float(lat2))
+
+    dlat = lat2 - lat1
+    dlon = math.radians(float(lon2)) - math.radians(float(lon1))
+
+    a = (
+        math.sin(dlat / 2) ** 2
+        + math.cos(lat1)
+        * math.cos(lat2)
+        * math.sin(dlon / 2) ** 2
+    )
+
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+    return R * c
+
+def find_closest_delivery_partner(latitude, longitude):
+    """Find the closest available delivery partner."""
+
+    response = (
+        supabase
+        .table("delivery_partners")
+        .select("*")
+        .eq("availability_status", "Available")
+        .execute()
+    )
+
+    partners = response.data or []
+
+    print("[DELIVERY] Available partners:", partners)
+
+    if not partners:
+        print("[DELIVERY] No available partners found")
+        return None
+
+    closest_partner = None
+    shortest_distance = float("inf")
+
+    for partner in partners:
+
+        print("[DELIVERY] Checking:", partner.get("partner_name"))
+        print(
+            "[DELIVERY] Coordinates:",
+            partner.get("current_latitude"),
+            partner.get("current_longitude")
+        )
+
+        if (
+            partner.get("current_latitude") is None
+            or partner.get("current_longitude") is None
+        ):
+            continue
+
+        try:
+            partner_latitude = float(partner["current_latitude"])
+            partner_longitude = float(partner["current_longitude"])
+
+            distance = calculate_distance(
+                latitude,
+                longitude,
+                partner_latitude,
+                partner_longitude
+            )
+
+            print(
+                "[DELIVERY] Distance to",
+                partner["partner_name"],
+                "=",
+                distance,
+                "km"
+            )
+
+            if distance < shortest_distance:
+                shortest_distance = distance
+                closest_partner = partner
+
+        except (ValueError, TypeError) as e:
+            print(
+                "[DELIVERY] Coordinate error:",
+                partner["partner_name"],
+                e
+            )
+
+    if closest_partner:
+        closest_partner["distance_km"] = round(
+            shortest_distance, 2
+        )
+
+    print("[DELIVERY] FINAL PARTNER:", closest_partner)
+
+    return closest_partner
 
 def load_blood_inventory():
     """
@@ -297,77 +408,202 @@ def get_latest_location(delivery_id):
 
 @app.route('/api/delivery/<delivery_id>/location')
 def delivery_location_api(delivery_id):
-    """
-    Returns the latest GPS location for a delivery
-    from the PostgreSQL location_updates table.
-    """
-
-    conn = None
-    cursor = None
-
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
+        # D001 -> 1
+        database_delivery_id = int(
+            delivery_id.replace("D", "")
+        )
 
-        # For the current frontend, D001 refers to
-        # the first database delivery (ID = 1).
-        if delivery_id == "D001":
-            database_delivery_id = 1
-        else:
-            database_delivery_id = int(
-                delivery_id.replace("D", "")
-            )
+        # -------------------------------------------------
+        # 1. Get delivery
+        # -------------------------------------------------
+        delivery_response = (
+            supabase
+            .table("deliveries")
+            .select("""
+                id,
+                partner_id,
+                customer_name,
+                customer_phone,
+                blood_group,
+                hospital_name,
+                destination,
+                destination_latitude,
+                destination_longitude,
+                status,
+                eta_minutes,
+                created_at,
+                updated_at
+            """)
+            .eq("id", database_delivery_id)
+            .limit(1)
+            .execute()
+        )
 
-        query = """
-            SELECT
-                d.id AS delivery_id,
-                d.status,
-                d.eta_minutes,
-                p.partner_name,
-                p.phone,
-                lu.latitude,
-                lu.longitude,
-                lu.recorded_at
-            FROM deliveries d
-            JOIN delivery_partners p
-                ON d.partner_id = p.id
-            JOIN location_updates lu
-                ON lu.delivery_id = d.id
-            WHERE d.id = %s
-            ORDER BY lu.recorded_at DESC
-            LIMIT 1;
-        """
+        deliveries = delivery_response.data
 
-        cursor.execute(query, (database_delivery_id,))
-        result = cursor.fetchone()
-
-        if result is None:
+        if not deliveries:
             return jsonify({
                 "success": False,
-                "message": "No location data found for this delivery"
+                "message": "Delivery not found"
             }), 404
 
-        (
-            db_delivery_id,
-            status,
-            eta_minutes,
-            partner_name,
-            phone,
-            latitude,
-            longitude,
-            recorded_at
-        ) = result
+        delivery = deliveries[0]
 
+        # -------------------------------------------------
+        # 2. Get delivery partner
+        # -------------------------------------------------
+        partner = None
+
+        if delivery["partner_id"] is not None:
+            partner_response = (
+                supabase
+                .table("delivery_partners")
+                .select("""
+                    id,
+                    partner_name,
+                    phone,
+                    vehicle_type,
+                    location,
+                    availability_status,
+                    current_latitude,
+                    current_longitude
+                """)
+                .eq("id", delivery["partner_id"])
+                .limit(1)
+                .execute()
+            )
+
+            partners = partner_response.data
+            partner = partners[0] if partners else None
+
+        # -------------------------------------------------
+        # 3. Get latest GPS location
+        # -------------------------------------------------
+        location_response = (
+            supabase
+            .table("location_updates")
+            .select("""
+                id,
+                delivery_id,
+                partner_id,
+                latitude,
+                longitude,
+                recorded_at
+            """)
+            .eq("delivery_id", database_delivery_id)
+            .order("recorded_at", desc=True)
+            .limit(1)
+            .execute()
+        )
+
+        locations = location_response.data
+
+        # -------------------------------------------------
+        # 4. Use latest GPS update
+        # -------------------------------------------------
+        location = locations[0] if locations else None
+
+        # If no location update exists yet,
+        # use partner's current location.
+        if location:
+            latitude = float(location["latitude"])
+            longitude = float(location["longitude"])
+            recorded_at = location["recorded_at"]
+        elif partner:
+            latitude = float(partner["current_latitude"])
+            longitude = float(partner["current_longitude"])
+            recorded_at = None
+        else:
+            latitude = None
+            longitude = None
+            recorded_at = None
+
+    
+        
+        # Calculate estimated travel time to destination
+        eta_minutes = delivery.get("eta_minutes") or 0
+
+        destination_lat = delivery.get("destination_latitude")
+        destination_lon = delivery.get("destination_longitude")
+
+        if (
+            latitude is not None
+            and longitude is not None
+            and destination_lat is not None
+            and destination_lon is not None
+        ):
+            distance_km = calculate_distance(
+                latitude,
+                longitude,
+                float(destination_lat),
+                float(destination_lon)
+            )
+
+            # Approximate city travel speed: 20 km/h
+            eta_minutes = round((distance_km / 20) * 60)
+
+            if distance_km > 0.1:
+                eta_minutes = max(1, eta_minutes)
+            else:
+                eta_minutes = 0
+        # -------------------------------------------------
+        # 5. Return data to frontend
+        # -------------------------------------------------
         return jsonify({
             "success": True,
             "data": {
                 "delivery_id": delivery_id,
-                "partner_name": partner_name,
-                "latitude": float(latitude),
-                "longitude": float(longitude),
-                "status": status,
+                "database_delivery_id": delivery["id"],
+
+                "partner_id": delivery["partner_id"],
+
+                "partner_name": (
+                    partner["partner_name"]
+                    if partner else None
+                ),
+
+                "phone": (
+                    partner["phone"]
+                    if partner else None
+                ),
+
+                "vehicle_type": (
+                    partner["vehicle_type"]
+                    if partner else None
+                ),
+
+                "partner_location": (
+                    partner["location"]
+                    if partner else None
+                ),
+
+                "latitude": latitude,
+                "longitude": longitude,
+
+                "status": delivery["status"],
                 "eta_minutes": eta_minutes,
-                "timestamp": recorded_at.isoformat()
+
+                "blood_group": delivery["blood_group"],
+                "customer_name": delivery["customer_name"],
+                "customer_phone": delivery["customer_phone"],
+
+                "hospital_name": delivery["hospital_name"],
+                "destination": delivery["destination"],
+
+                "destination_latitude": (
+                    float(delivery["destination_latitude"])
+                    if delivery["destination_latitude"] is not None
+                    else None
+                ),
+
+                "destination_longitude": (
+                    float(delivery["destination_longitude"])
+                    if delivery["destination_longitude"] is not None
+                    else None
+                ),
+
+                "recorded_at": recorded_at
             }
         })
 
@@ -376,20 +612,60 @@ def delivery_location_api(delivery_id):
 
         return jsonify({
             "success": False,
-            "message": "Database error",
+            "message": "Supabase database error",
             "error": str(e)
         }), 500
 
-    finally:
-        if cursor:
-            cursor.close()
+@app.route('/api/delivery/<delivery_id>/status', methods=['POST'])
+def update_delivery_status(delivery_id):
+    try:
+        database_delivery_id = int(delivery_id.replace("D", ""))
 
-        if conn:
-            conn.close()
+        data = request.get_json(silent=True) or {}
+        new_status = data.get("status", "").strip()
 
-@app.route('/live-tracking')
-def live_tracking():
-    return render_template('live-tracking.html')
+        allowed_statuses = [
+            "Assigned",
+            "On the way",
+            "Arrived",
+            "Completed",
+            "Cancelled"
+        ]
+
+        if new_status not in allowed_statuses:
+            return jsonify({
+                "success": False,
+                "message": "Invalid delivery status"
+            }), 400
+
+        update_response = (
+            supabase.table("deliveries")
+            .update({
+                "status": new_status
+            })
+            .eq("id", database_delivery_id)
+            .execute()
+        )
+
+        if not update_response.data:
+            return jsonify({
+                "success": False,
+                "message": "Delivery not found"
+            }), 404
+
+        return jsonify({
+            "success": True,
+            "delivery_id": delivery_id,
+            "status": new_status
+        })
+
+    except Exception as e:
+        print("[ERROR] Status update:", e)
+        return jsonify({
+            "success": False,
+            "message": "Could not update delivery status"
+        }), 500
+
 
 @app.route('/deliveries')
 def deliveries():
@@ -520,6 +796,9 @@ def home():
     """Step 0: Home page route."""
     return render_template('index.html', valid_blood_groups=VALID_BLOOD_GROUPS)
 
+@app.route('/live-tracking')
+def live_tracking():
+    return render_template('live-tracking.html')
 
 @app.route('/about')
 def about():
@@ -694,9 +973,7 @@ def availability():
 
 @app.route('/request-blood', methods=['POST'])
 def request_blood():
-    """
-    Step 4: Submits the blood request for the chosen hospital and shows confirmation.
-    """
+
     hospital_id = request.form.get('hospital_id', '').strip()
     blood_group = request.form.get('blood_group', '').strip().upper()
     patient_name = request.form.get('name', '').strip()
@@ -707,10 +984,66 @@ def request_blood():
     location = request.form.get('location', '').strip()
     distance = request.form.get('distance', '').strip()
 
+    try:
+        units_needed_int = int(units_needed)
+    except ValueError:
+        units_needed_int = 1
+
     hospitals_map = load_hospitals()
     hospital_info = hospitals_map.get(hospital_id, {})
-    hospital_name = hospital_info.get('hospital_name', 'Selected Hospital')
 
+    hospital_name = hospital_info.get(
+        'hospital_name',
+        'Selected Hospital'
+    )
+
+    hospital_latitude = hospital_info.get('latitude')
+    hospital_longitude = hospital_info.get('longitude')
+
+    delivery_id = None
+    assigned_partner = None
+
+    # Find closest available partner
+    if hospital_latitude is not None and hospital_longitude is not None:
+        hospital_latitude = float(hospital_latitude)
+        hospital_longitude = float(hospital_longitude)
+
+        assigned_partner = find_closest_delivery_partner(
+            hospital_latitude,
+            hospital_longitude
+        )
+
+        print("[DELIVERY] Closest partner:", assigned_partner)
+
+    # Create delivery
+    if assigned_partner:
+        delivery_response = (
+            supabase
+            .table("deliveries")
+            .insert({
+                "partner_id": assigned_partner["id"],
+                "customer_name": patient_name,
+                "customer_phone": contact_number,
+                "blood_group": blood_group,
+                "hospital_name": hospital_name,
+                "destination": hospital_info.get("address", ""),
+                "destination_latitude": hospital_latitude,
+                "destination_longitude": hospital_longitude,
+                "status": "Assigned",
+                "eta_minutes": 0
+            })
+            .execute()
+        )
+
+        if delivery_response.data:
+            delivery = delivery_response.data[0]
+            delivery_id = delivery["id"]
+
+            supabase.table("delivery_partners").update({
+                "availability_status": "Busy"
+            }).eq("id", assigned_partner["id"]).execute()
+
+    # Thank-you page
     return render_template(
         'thankyou.html',
         success=True,
@@ -724,9 +1057,25 @@ def request_blood():
         units=units_needed,
         urgency=urgency,
         location=location,
-        distance=distance
+        distance=distance,
+        delivery_id=f"D{delivery_id:03d}" if delivery_id else None,
+        partner_name=(
+            assigned_partner["partner_name"]
+            if assigned_partner else None
+        ),
+        partner_phone=(
+            assigned_partner["phone"]
+            if assigned_partner else None
+        ),
+        partner_vehicle=(
+            assigned_partner["vehicle_type"]
+            if assigned_partner else None
+        ),
+        partner_distance=(
+            assigned_partner["distance_km"]
+            if assigned_partner else None
+        )
     )
-
 
 @app.route('/thankyou')
 def thankyou():
